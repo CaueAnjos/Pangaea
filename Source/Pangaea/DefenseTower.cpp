@@ -99,9 +99,9 @@ void ADefenseTower::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AAct
 void ADefenseTower::OnMeshBeginOverlap(AActor* OtherActor)
 {
 	auto weapon = Cast<AWeapon>(OtherActor);
-	if(weapon != nullptr && weapon->Holder)
+	if(weapon != nullptr && weapon->HasHolder())
 	{
-		auto playerAvatar = Cast<APlayerAvatar>(weapon->Holder);
+		auto playerAvatar = Cast<APlayerAvatar>(weapon->GetHolder());
 		if(playerAvatar != nullptr && playerAvatar->IsAttacking())
 			Hit(playerAvatar->Strength);
 	}

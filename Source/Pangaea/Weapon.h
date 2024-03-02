@@ -7,6 +7,7 @@
 
 class AAvatar;
 class APlayerAvatar;
+class USphereComponent;
 
 UCLASS()
 class PANGAEA_API AWeapon : public AActor
@@ -16,17 +17,20 @@ class PANGAEA_API AWeapon : public AActor
 public:
 	AWeapon();
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-	AAvatar* Holder = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Weapon Params")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Params")
 	float Streegth = 10;
 
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Replicated)
+	AAvatar* _Holder = nullptr;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* _StaticMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	USphereComponent* _PickUpSphere;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -34,16 +38,37 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
+	void SetHolder(AAvatar* newHolder);
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE AAvatar* GetHolder() const
+	{
+		return _Holder;
+	}
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool HasHolder() const
+	{
+		return _Holder != nullptr;
+	}
+
+	UFUNCTION(BlueprintCallable)
 	void DropWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void PickUpWeapon(APlayerAvatar* playerAvatar);
 
-	UFUNCTION()
-	void OnWeaponBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	bool HitDetection(TArray<FHitResult>& hit);
 
 private:
+	UFUNCTION()
+	void OnHolderDie();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void DropWeapon_MultCast();
 	void DropWeapon_MultCast_Implementation();
+
+	UFUNCTION()
+	void OnPickUpSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

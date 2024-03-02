@@ -19,7 +19,7 @@ void AEnemy::BeginPlay()
 	if(_WeaponClass)
 	{
 		_Weapon = GetWorld()->SpawnActor<AWeapon>(_WeaponClass);
-		_Weapon->Holder = this;
+		_Weapon->SetHolder(this);
 		_Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_rSocket"));
 	}
 

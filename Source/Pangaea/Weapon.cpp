@@ -2,6 +2,7 @@
 #include "PlayerAvatar.h"
 #include "Avatar.h"
 #include "Net/UnrealNetwork.h"
+#include "Components/SphereComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -11,26 +12,25 @@ AWeapon::AWeapon()
 
 	_StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
 	SetRootComponent(_StaticMesh);
-	_StaticMesh->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	_StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+	_PickUpSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickUp Collider"));
+	_PickUpSphere->SetupAttachment(RootComponent);
+	_PickUpSphere->InitSphereRadius(20.f);
+	_PickUpSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnPickUpSphereOverlap);
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnActorBeginOverlap.AddDynamic(this, &AWeapon::OnWeaponBeginOverlap);
 }
 
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(HasAuthority() && Holder && Holder->IsKilled())
-	{
-		DropWeapon();
-	}
-
-	if(!Holder)
+	if(!HasHolder())
 	{
 		FQuat rotQuat(FRotator(0, 300.f * DeltaTime, 0));
 		AddActorLocalRotation(rotQuat);
@@ -40,19 +40,38 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AWeapon, Holder);
+	DOREPLIFETIME(AWeapon, _Holder);
+}
+
+void AWeapon::SetHolder(AAvatar* newHolder)
+{
+	if(IsValid(newHolder))
+	{
+		if(IsValid(_Holder))
+			_Holder->OnAvatarDie.RemoveDynamic(this, &AWeapon::OnHolderDie);
+
+		_Holder = newHolder;
+		_Holder->OnAvatarDie.AddDynamic(this, &AWeapon::OnHolderDie);
+
+		SetOwner(newHolder);
+		newHolder->Weapon = this;
+	}
+	else _Holder = nullptr;
 }
 
 void AWeapon::DropWeapon()
 {
-	Holder = nullptr;
+	SetHolder(nullptr);
+	_PickUpSphere->SetActive(true);
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	DropWeapon_MultCast();
 }
 
 void AWeapon::PickUpWeapon(APlayerAvatar* playerAvatar)
 {
-	Holder = playerAvatar;
+	SetHolder(playerAvatar);
+	_PickUpSphere->SetActive(false);
+
 	TArray<AActor*> attachedActors;
 	playerAvatar->GetAttachedActors(attachedActors);
 
@@ -63,25 +82,13 @@ void AWeapon::PickUpWeapon(APlayerAvatar* playerAvatar)
 			weapon->DropWeapon();
 	}
 
-	AttachToComponent(Holder->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName(TEXT("hand_rSocket")));
+	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName(TEXT("hand_rSocket")));
 }
 
-void AWeapon::OnWeaponBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+void AWeapon::OnHolderDie()
 {
-	auto avatar = Cast<AAvatar>(OtherActor);
-	if(avatar != nullptr)
-	{
-		if(Holder && avatar != Holder && Holder->IsAttacking())
-		{
-			avatar->Hit(Holder->Strength + Streegth);
-		}
-		else if(HasAuthority() && !Holder)
-		{
-			auto playerAvatar = Cast<APlayerAvatar>(avatar);
-			if(playerAvatar)
-				PickUpWeapon(playerAvatar);
-		}
-	}
+	if(HasAuthority())
+		DropWeapon();
 }
 
 void AWeapon::DropWeapon_MultCast_Implementation()
@@ -89,4 +96,16 @@ void AWeapon::DropWeapon_MultCast_Implementation()
 	FVector newPosition = GetActorLocation();
 	newPosition.Z = 90.f;
 	SetActorLocationAndRotation(newPosition, FQuat::Identity);
+}
+
+void AWeapon::OnPickUpSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(HasAuthority() && !HasHolder())
+	{
+		auto playerAvatar = Cast<APlayerAvatar>(OtherActor);
+		if(playerAvatar)
+		{
+			PickUpWeapon(playerAvatar);
+		}
+	}
 }

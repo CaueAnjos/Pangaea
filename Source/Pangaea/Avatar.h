@@ -5,10 +5,12 @@
 #include "Avatar.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChange, int, CurrentHealth, int, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAvatarDie);
 
 class UAnimMontage;
 class UBoxComponent;
 class UAvatarAnimInstance;
+class AWeapon;
 
 UCLASS()
 class PANGAEA_API AAvatar : public ACharacter
@@ -20,11 +22,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Avatar Params|Status")
 	int HealthPoints = 100;
 
-	UPROPERTY(EditAnywhere, Category = "Avatar Params|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avatar Params|Status")
 	float Strength = 5.f;
 
-	UPROPERTY(EditAnywhere, Category = "Avatar Params|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avatar Params|Status")
 	int Armor = 1;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Avatar Params|Attack")
+	AWeapon* Weapon;
 
 	UPROPERTY(EditAnywhere, Category = "Avatar Params|Attack")
 	float AttackInterval = 3.f;
@@ -41,8 +46,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Avatar Params|Attack")
 	UBoxComponent* HitBox;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnHealthChange OnHealthChange;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnAvatarDie OnAvatarDie;
 
 protected:
 	virtual void BeginPlay() override;
@@ -89,6 +97,7 @@ public:
 	void Attack();
 	void Attack_Implementation();
 
+	UFUNCTION(BlueprintCallable)
 	void Hit(int damage);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)

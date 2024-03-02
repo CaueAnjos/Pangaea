@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "AvatarAnimInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon.h"
 
 AAvatar::AAvatar()
 {
@@ -101,7 +102,10 @@ void AAvatar::Hit(int damage)
 		GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);
 
 		if(IsKilled())
+		{
+			OnAvatarDie.Broadcast();
 			DieProcess();
+		}
 	}
 }
 
