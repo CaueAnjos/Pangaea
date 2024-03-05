@@ -55,6 +55,18 @@ void AAvatar::OnHealthChangeRep()
 	OnHealthChange.Broadcast(_HealthPoints, HealthPoints);
 }
 
+float AAvatar::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	if(ActualDamage > 0.f)
+	{
+		ActualDamage -= Armor;
+		Hit(ActualDamage);
+		return ActualDamage;
+	}
+	else return 0.f;
+}
+
 void AAvatar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

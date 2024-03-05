@@ -55,7 +55,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(Replicated, ReplicatedUsing = OnHealthChangeRep)
+	UPROPERTY(ReplicatedUsing = OnHealthChangeRep)
 	int _HealthPoints;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -79,6 +79,8 @@ private:
 	void OnHealthChangeRep();
 
 public:	
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintPure, Category = "Pangaea|PlayerAvatar", meta = (DisplayName = "GetHP"))

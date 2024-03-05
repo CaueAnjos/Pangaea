@@ -5,6 +5,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PangaeaGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 ADefenseTower::ADefenseTower()
 {
@@ -23,6 +24,8 @@ void ADefenseTower::BeginPlay()
 	Super::BeginPlay();
 	SetActorTickInterval(0.5f);
 
+	bEndReHitCoolDown = true;
+
 	_HealthPoints = HealthPoints + (HealthPoints * ShellDefense * 0.25f);
 
 	_SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ADefenseTower::OnBeginOverlap);
@@ -37,6 +40,32 @@ void ADefenseTower::Tick(float DeltaTime)
 
 	if(HasAuthority() && _Target)
 		Fire();
+}
+
+void ADefenseTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADefenseTower, _HealthPoints);
+}
+
+float ADefenseTower::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	if(ActualDamage > 0.f && CanTakeDamage())
+	{
+		GetWorldTimerManager().SetTimer(ReHitCoolDownTimer, this, &ADefenseTower::OnFinishReHitCoolDown, ReHitInterval, false, ReHitInterval);
+		bEndReHitCoolDown = false;
+
+		ActualDamage -= ShellDefense;
+		Hit(ActualDamage);
+		return ActualDamage;		
+	}
+	else return 0.f;
+}
+
+bool ADefenseTower::CanTakeDamage()
+{
+	return bEndReHitCoolDown;
 }
 
 int ADefenseTower::GetHealthPoints() const
@@ -75,11 +104,13 @@ void ADefenseTower::Fire()
 
 void ADefenseTower::Hit(int damage)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("HIT: Damage = %d"), damage));
 	if(damage > 0)
 	{
-		_HealthPoints -= damage;
-		if(_HealthPoints <= 0) DestroyProcess();
+		if(HasAuthority())
+			_HealthPoints -= damage;
+
+		if(IsDestroyed()) 
+			DestroyProcess();
 	}
 }
 
@@ -96,20 +127,14 @@ void ADefenseTower::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AAct
 		_Target = nullptr;
 }
 
-void ADefenseTower::OnMeshBeginOverlap(AActor* OtherActor)
-{
-	auto weapon = Cast<AWeapon>(OtherActor);
-	if(weapon != nullptr && weapon->HasHolder())
-	{
-		auto playerAvatar = Cast<APlayerAvatar>(weapon->GetHolder());
-		if(playerAvatar != nullptr && playerAvatar->IsAttacking())
-			Hit(playerAvatar->Strength);
-	}
-}
-
 void ADefenseTower::DestroyProcess()
 {
-	PrimaryActorTick.bCanEverTick = false;
 	Destroy();
+}
+
+void ADefenseTower::OnFinishReHitCoolDown()
+{
+	GetWorldTimerManager().ClearTimer(ReHitCoolDownTimer);
+	bEndReHitCoolDown = true;
 }
 

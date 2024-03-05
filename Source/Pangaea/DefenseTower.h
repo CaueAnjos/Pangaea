@@ -28,13 +28,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	float ReloadInterval = 1.f;
 
+	UPROPERTY(EditAnywhere, Category = "Tower Params")
+	float ReHitInterval = 1.f;
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AProjictile> ProjictileClass = nullptr;
 
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Replicated)
 	int _HealthPoints;
+
 	float _ReloadCountingDown;
 
 	class APlayerAvatar* _Target;
@@ -43,6 +48,13 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintPure)
+	bool CanTakeDamage();
 
 	UFUNCTION(BlueprintPure, Category = "Pangaea|Defense Tower", meta = (DisplayName = "GetHP"))
 	int GetHealthPoints() const;
@@ -61,9 +73,6 @@ public:
 
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex);
-
-	UFUNCTION(BlueprintCallable)
-	void OnMeshBeginOverlap(AActor* OtherActor);
 
 	FORCEINLINE USphereComponent* GetBoxComponent() const
 	{
@@ -84,4 +93,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower Component", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* _MeshComponent;
+
+	uint8 bEndReHitCoolDown : 1;
+
+	FTimerHandle ReHitCoolDownTimer;
+
+	void OnFinishReHitCoolDown();
 };
