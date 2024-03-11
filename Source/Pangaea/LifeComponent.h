@@ -46,6 +46,12 @@ public:
 		return _CurrentHealth <= 0;
 	}
 
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE float GetCurrentHealth() const
+	{
+		return _CurrentHealth;
+	}
+
 private:	
 	UPROPERTY(ReplicatedUsing=Rep_CurrentHealth)
 	float _CurrentHealth;
