@@ -16,10 +16,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "LifeStatus", meta = (ClampMin = "0"))
-	float _MaxHealth;
+	float _MaxHealth = 100;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "LifeStatus", meta = (ClampMin = "0"))
-	float _Defense;
+	float _Defense = 10;
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

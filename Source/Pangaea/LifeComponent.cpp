@@ -3,8 +3,7 @@
 
 ULifeComponent::ULifeComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 
@@ -12,6 +11,11 @@ void ULifeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if(GetOwner()->HasAuthority())
+	{
+		_CurrentHealth = _MaxHealth;
+		Rep_CurrentHealth();
+	}
 }
 
 void ULifeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
