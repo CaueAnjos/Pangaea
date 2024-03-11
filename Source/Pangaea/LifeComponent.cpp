@@ -62,6 +62,9 @@ void ULifeComponent::Cure(float cureAmount)
 
 void ULifeComponent::Rep_CurrentHealth()
 {
-
+	if(IsDead())
+	{
+		OnDie.Broadcast();
+	}
 }
 
