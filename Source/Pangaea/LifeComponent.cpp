@@ -27,9 +27,12 @@ void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void ULifeComponent::SetMaxHealth(float value)
 {
-	if(GetOwner()->HasAuthority())
+	if(GetOwner()->HasAuthority() && value > 0)
 	{
 		_MaxHealth = value;
+
+		if(_CurrentHealth > _MaxHealth)
+			_CurrentHealth = _MaxHealth;
 	}
 }
 
