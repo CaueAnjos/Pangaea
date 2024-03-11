@@ -44,7 +44,7 @@ void ULifeComponent::SetDefense(float value)
 
 void ULifeComponent::Damage(float damageAmount)
 {
-	if(GetOwner()->HasAuthority() && damageAmount >= 0)
+	if(GetOwner()->HasAuthority() && !IsDead()  && damageAmount >= 0)
 	{
 		_CurrentHealth -= damageAmount;
 		Rep_CurrentHealth();
@@ -53,7 +53,7 @@ void ULifeComponent::Damage(float damageAmount)
 
 void ULifeComponent::Cure(float cureAmount)
 {
-	if(GetOwner()->HasAuthority() && cureAmount >= 0)
+	if(GetOwner()->HasAuthority() && !IsDead() && cureAmount >= 0)
 	{
 		_CurrentHealth += cureAmount;
 		Rep_CurrentHealth();
