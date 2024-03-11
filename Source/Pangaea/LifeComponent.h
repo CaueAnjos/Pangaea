@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "LifeComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDie);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PANGAEA_API ULifeComponent : public UActorComponent
@@ -23,6 +24,9 @@ protected:
 
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnDie OnDie;
 
 	UFUNCTION(BlueprintCallable)
 	void SetMaxHealth(float value);
@@ -47,6 +51,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Cure(float cureAmount);
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool IsDead() const
+	{
+		return _CurrentHealth <= 0;
+	}
 
 private:	
 	UPROPERTY(ReplicatedUsing=Rep_CurrentHealth)
