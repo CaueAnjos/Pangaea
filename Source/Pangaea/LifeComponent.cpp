@@ -13,7 +13,7 @@ void ULifeComponent::BeginPlay()
 	
 	if(GetOwner()->HasAuthority())
 	{
-		_CurrentHealth = _MaxHealth + (_MaxHealth * _Defense / 4.f);
+		_CurrentHealth = _MaxHealth;
 		Rep_CurrentHealth();
 	}
 }
@@ -23,7 +23,6 @@ void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ULifeComponent, _CurrentHealth);
 	DOREPLIFETIME(ULifeComponent, _MaxHealth);
-	DOREPLIFETIME(ULifeComponent, _Defense);
 }
 
 void ULifeComponent::SetMaxHealth(float value)
@@ -31,14 +30,6 @@ void ULifeComponent::SetMaxHealth(float value)
 	if(GetOwner()->HasAuthority())
 	{
 		_MaxHealth = value;
-	}
-}
-
-void ULifeComponent::SetDefense(float value)
-{
-	if(GetOwner()->HasAuthority())
-	{
-		_Defense = value;
 	}
 }
 

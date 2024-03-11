@@ -19,9 +19,6 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = "LifeStatus", meta = (ClampMin = "0"))
 	float _MaxHealth = 100;
 
-	UPROPERTY(Replicated, EditAnywhere, Category = "LifeStatus", meta = (ClampMin = "0"))
-	float _Defense = 10;
-
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -35,15 +32,6 @@ public:
 	FORCEINLINE float GetMaxHealth() const
 	{
 		return _MaxHealth;
-	}
-
-	UFUNCTION(BlueprintCallable)
-	void SetDefense(float value);
-
-	UFUNCTION(BlueprintPure)
-	FORCEINLINE float GetDefense() const
-	{
-		return _Defense;
 	}
 
 	UFUNCTION(BlueprintCallable)
