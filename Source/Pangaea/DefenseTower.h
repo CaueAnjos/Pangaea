@@ -8,6 +8,7 @@
 
 class APangaeaGameMode;
 class AProjictile;
+class ULifeComponent;
 
 UCLASS(Blueprintable)
 class PANGAEA_API ADefenseTower : public AActor
@@ -17,10 +18,7 @@ public:
 	ADefenseTower();
 
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
-	int HealthPoints = 100;
-
-	UPROPERTY(EditAnywhere, Category = "Tower Params")
-	int ShellDefense = 2;
+	ULifeComponent* LifeComp;
 	
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	float AttackRange = 15.f;
@@ -37,11 +35,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(Replicated)
-	int _HealthPoints;
-
-	float _ReloadCountingDown;
-
 	class APlayerAvatar* _Target;
 
 	APangaeaGameMode* _GameMode;
@@ -49,15 +42,10 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintPure)
 	bool CanTakeDamage();
-
-	UFUNCTION(BlueprintPure, Category = "Pangaea|Defense Tower", meta = (DisplayName = "GetHP"))
-	int GetHealthPoints() const;
 
 	UFUNCTION(BlueprintPure, Category = "Pangaea|Defense Tower")
 	bool IsDestroyed() const;
@@ -85,6 +73,7 @@ public:
 	}
 
 protected:
+	UFUNCTION()
 	void DestroyProcess();
 
 private:

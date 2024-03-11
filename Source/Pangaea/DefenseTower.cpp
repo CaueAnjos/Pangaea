@@ -5,11 +5,13 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PangaeaGameMode.h"
 #include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
+#include "DefenseTower.h"
+#include "LifeComponent.h"
 
 ADefenseTower::ADefenseTower()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	_SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Collider"));
 	_SphereComponent->SetSphereRadius(AttackRange);
@@ -17,6 +19,8 @@ ADefenseTower::ADefenseTower()
 
 	_MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
 	_MeshComponent->SetupAttachment(_SphereComponent);
+
+	LifeComp = CreateDefaultSubobject<ULifeComponent>(TEXT("Life"));
 }
 
 void ADefenseTower::BeginPlay()
@@ -26,7 +30,7 @@ void ADefenseTower::BeginPlay()
 
 	bEndReHitCoolDown = true;
 
-	_HealthPoints = HealthPoints + (HealthPoints * ShellDefense * 0.25f);
+	LifeComp->OnDie.AddDynamic(this, &ADefenseTower::DestroyProcess);
 
 	_SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ADefenseTower::OnBeginOverlap);
 	_SphereComponent->OnComponentEndOverlap.AddDynamic(this, &ADefenseTower::OnEndOverlap);
@@ -42,12 +46,6 @@ void ADefenseTower::Tick(float DeltaTime)
 		Fire();
 }
 
-void ADefenseTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ADefenseTower, _HealthPoints);
-}
-
 float ADefenseTower::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
@@ -56,7 +54,6 @@ float ADefenseTower::TakeDamage(float Damage, FDamageEvent const& DamageEvent, A
 		GetWorldTimerManager().SetTimer(ReHitCoolDownTimer, this, &ADefenseTower::OnFinishReHitCoolDown, ReHitInterval, false, ReHitInterval);
 		bEndReHitCoolDown = false;
 
-		ActualDamage -= ShellDefense;
 		Hit(ActualDamage);
 		return ActualDamage;		
 	}
@@ -68,19 +65,14 @@ bool ADefenseTower::CanTakeDamage()
 	return bEndReHitCoolDown;
 }
 
-int ADefenseTower::GetHealthPoints() const
-{
-	return _HealthPoints;
-}
-
 bool ADefenseTower::IsDestroyed() const
 {
-	return _HealthPoints <= 0;
+	return LifeComp->IsDead();
 }
 
 bool ADefenseTower::CanFire() const
 {
-	return (_ReloadCountingDown <= 0.f);
+	return true;
 }
 
 void ADefenseTower::Fire()
@@ -104,14 +96,7 @@ void ADefenseTower::Fire()
 
 void ADefenseTower::Hit(int damage)
 {
-	if(damage > 0)
-	{
-		if(HasAuthority())
-			_HealthPoints -= damage;
-
-		if(IsDestroyed()) 
-			DestroyProcess();
-	}
+	LifeComp->Damage(damage);
 }
 
 void ADefenseTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
