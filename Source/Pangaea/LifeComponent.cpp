@@ -1,4 +1,5 @@
 #include "LifeComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ULifeComponent::ULifeComponent()
 {
@@ -21,7 +22,10 @@ void ULifeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ULifeComponent, _CurrentHealth);
+	DOREPLIFETIME(ULifeComponent, _MaxHealth);
+	DOREPLIFETIME(ULifeComponent, _Defense);
 }
 
 void ULifeComponent::SetMaxHealth(float value)
