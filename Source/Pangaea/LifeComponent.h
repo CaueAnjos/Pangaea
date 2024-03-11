@@ -5,6 +5,7 @@
 #include "LifeComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChange, ULifeComponent*, LifeComp);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PANGAEA_API ULifeComponent : public UActorComponent
@@ -24,6 +25,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDie OnDie;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnHealthChange OnHealthChange;
 
 	UFUNCTION(BlueprintCallable)
 	void SetMaxHealth(float value);
