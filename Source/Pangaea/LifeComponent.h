@@ -4,6 +4,8 @@
 #include "Components/ActorComponent.h"
 #include "LifeComponent.generated.h"
 
+class ULifeComponent;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDie);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChange, ULifeComponent*, LifeComp);
 

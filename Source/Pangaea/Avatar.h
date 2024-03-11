@@ -4,13 +4,11 @@
 #include "GameFramework/Character.h"
 #include "Avatar.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChange, int, CurrentHealth, int, MaxHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAvatarDie);
-
 class UAnimMontage;
 class UBoxComponent;
 class UAvatarAnimInstance;
 class AWeapon;
+class ULifeComponent;
 
 UCLASS()
 class PANGAEA_API AAvatar : public ACharacter
@@ -19,14 +17,8 @@ class PANGAEA_API AAvatar : public ACharacter
 public:
 	AAvatar();
 
-	UPROPERTY(EditAnywhere, Category = "Avatar Params|Status")
-	int HealthPoints = 100;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avatar Params|Status")
 	float Strength = 5.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Avatar Params|Status")
-	int Armor = 1;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Avatar Params|Attack")
 	AWeapon* Weapon;
@@ -46,20 +38,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Avatar Params|Attack")
 	UBoxComponent* HitBox;
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnHealthChange OnHealthChange;
-
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnAvatarDie OnAvatarDie;
-
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(ReplicatedUsing = OnHealthChangeRep)
-	int _HealthPoints;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	UAvatarAnimInstance* _AnimInstance;
+
+	UPROPERTY(EditAnywhere, Category = "Avatar Params|Status")
+	ULifeComponent* _LifeComp;
 
 private:
 	uint8 bIsAttacking : 1;
@@ -75,16 +61,8 @@ private:
 	void Attack_BroadCast();
 	void Attack_BroadCast_Implementation();
 
-	UFUNCTION()
-	void OnHealthChangeRep();
-
 public:	
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-
-	UFUNCTION(BlueprintPure, Category = "Pangaea|PlayerAvatar", meta = (DisplayName = "GetHP"))
-	int GetHealthPoints() const;
 
 	UFUNCTION(BlueprintPure, Category = "Pangaea|PlayerAvatar")
 	bool IsKilled() const;
@@ -105,4 +83,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void DieProcess();
 	void DieProcess_Implementation();
+
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE ULifeComponent* GetLifeComponent() const
+	{
+		return _LifeComp;
+	}
 };

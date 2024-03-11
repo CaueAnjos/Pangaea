@@ -1,6 +1,7 @@
 #include "Weapon.h"
 #include "PlayerAvatar.h"
 #include "Avatar.h"
+#include "LifeComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/SphereComponent.h"
 
@@ -48,10 +49,10 @@ void AWeapon::SetHolder(AAvatar* newHolder)
 	if(IsValid(newHolder))
 	{
 		if(IsValid(_Holder))
-			_Holder->OnAvatarDie.RemoveDynamic(this, &AWeapon::OnHolderDie);
+			_Holder->GetLifeComponent()->OnDie.RemoveDynamic(this, &AWeapon::OnHolderDie);
 
 		_Holder = newHolder;
-		_Holder->OnAvatarDie.AddDynamic(this, &AWeapon::OnHolderDie);
+		_Holder->GetLifeComponent()->OnDie.AddDynamic(this, &AWeapon::OnHolderDie);
 
 		SetOwner(newHolder);
 		newHolder->Weapon = this;

@@ -4,6 +4,7 @@
 #include "AvatarAnimInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon.h"
+#include "LifeComponent.h"
 
 AAvatar::AAvatar()
 {
@@ -12,6 +13,9 @@ AAvatar::AAvatar()
 	HitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("Hit Box Collider"));
 	HitBox->SetupAttachment(RootComponent);
 	HitBox->InitBoxExtent(FVector(50.f, 50.f, 80.f));
+
+	_LifeComp = CreateDefaultSubobject<ULifeComponent>(TEXT("Life"));
+	_LifeComp->SetMaxHealth(500.f);
 }
 
 void AAvatar::BeginPlay()
@@ -20,9 +24,9 @@ void AAvatar::BeginPlay()
 	bIsAttacking = false;
 	bEndReHitCoolDown = true;
 
-	_HealthPoints = HealthPoints + (_HealthPoints * Armor * 0.25);
-
 	_AnimInstance = Cast<UAvatarAnimInstance>(GetMesh()->GetAnimInstance());
+
+	_LifeComp->OnDie.AddDynamic(this, &AAvatar::DieProcess);
 }
 
 void AAvatar::OnFinishAttackCoolDown()
@@ -50,37 +54,20 @@ void AAvatar::Attack_BroadCast_Implementation()
 	}
 }
 
-void AAvatar::OnHealthChangeRep()
-{
-	OnHealthChange.Broadcast(_HealthPoints, HealthPoints);
-}
-
 float AAvatar::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 	if(ActualDamage > 0.f)
 	{
-		ActualDamage -= Armor;
 		Hit(ActualDamage);
 		return ActualDamage;
 	}
 	else return 0.f;
 }
 
-void AAvatar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AAvatar, _HealthPoints);
-}
-
-int AAvatar::GetHealthPoints() const
-{
-	return _HealthPoints;
-}
-
 bool AAvatar::IsKilled() const
 {
-	return (_HealthPoints <= 0.f);
+	return _LifeComp->IsDead();
 }
 
 bool AAvatar::CanAttack() const
@@ -105,19 +92,9 @@ void AAvatar::Hit(int damage)
 		bEndReHitCoolDown = false;
 		GetWorldTimerManager().SetTimer(ReHitCoolDownTimer, this, &AAvatar::OnFinishReHitCoolDown, ReHitInterval, false, ReHitInterval);
 
-		if(HasAuthority())
-		{
-			_HealthPoints -= damage;
-			OnHealthChangeRep();
-		}
+		_LifeComp->Damage(damage);
 
 		GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);
-
-		if(IsKilled())
-		{
-			OnAvatarDie.Broadcast();
-			DieProcess();
-		}
 	}
 }
 
