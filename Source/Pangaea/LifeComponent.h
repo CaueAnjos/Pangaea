@@ -52,6 +52,9 @@ public:
 		return _CurrentHealth <= 0;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentHealth(float newHealth);
+
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrentHealth() const
 	{
@@ -59,8 +62,8 @@ public:
 	}
 
 private:	
-	UPROPERTY(ReplicatedUsing=Rep_CurrentHealth)
-	float _CurrentHealth;
+	UPROPERTY(Replicated, ReplicatedUsing=Rep_CurrentHealth)
+	float _CurrentHealth = 0.f;
 
 	UFUNCTION()
 	void Rep_CurrentHealth();

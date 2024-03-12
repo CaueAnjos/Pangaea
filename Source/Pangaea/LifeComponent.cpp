@@ -4,6 +4,7 @@
 ULifeComponent::ULifeComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -11,11 +12,7 @@ void ULifeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if(GetOwner()->HasAuthority())
-	{
-		_CurrentHealth = _MaxHealth;
-		Rep_CurrentHealth();
-	}
+	SetCurrentHealth(_MaxHealth);
 }
 
 void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,25 +28,34 @@ void ULifeComponent::SetMaxHealth(float value)
 	{
 		_MaxHealth = value;
 
-		if(_CurrentHealth > _MaxHealth)
-			_CurrentHealth = _MaxHealth;
+		if(GetCurrentHealth() > _MaxHealth)
+			SetCurrentHealth(_MaxHealth);
 	}
 }
 
 void ULifeComponent::Damage(float damageAmount)
 {
-	if(GetOwner()->HasAuthority() && !IsDead()  && damageAmount >= 0)
+	if(!IsDead()  && damageAmount >= 0)
 	{
-		_CurrentHealth -= damageAmount;
-		Rep_CurrentHealth();
+		float newHealth = GetCurrentHealth() - damageAmount;
+		SetCurrentHealth(newHealth);
 	}
 }
 
 void ULifeComponent::Cure(float cureAmount)
 {
-	if(GetOwner()->HasAuthority() && !IsDead() && cureAmount >= 0)
+	if(cureAmount >= 0)
 	{
-		_CurrentHealth += cureAmount;
+		float newHealth = GetCurrentHealth() + cureAmount;
+		SetCurrentHealth(newHealth);
+	}
+}
+
+void ULifeComponent::SetCurrentHealth(float newHealth)
+{
+	if(GetOwner()->HasAuthority())
+	{
+		_CurrentHealth = FMath::Clamp(newHealth, 0.f, _MaxHealth);
 		Rep_CurrentHealth();
 	}
 }
@@ -59,8 +65,6 @@ void ULifeComponent::Rep_CurrentHealth()
 	OnHealthChange.Broadcast(this);
 
 	if(IsDead())
-	{
 		OnDie.Broadcast();
-	}
 }
 

@@ -33,7 +33,6 @@ AProjictile* APangaeaGameMode::SpawnOrGetFireball(TSubclassOf<AProjictile> proji
 	else
 		projictile = GetWorld()->SpawnActor<AProjictile>(projictileClass);
 
-	UE_LOG(LogTemp, Warning, TEXT("SpawnOrGetFireball"));
 	return projictile;
 }
 
@@ -45,7 +44,5 @@ void APangaeaGameMode::RecycleFireBall(AProjictile* projictile)
 		projictile->SetActorEnableCollision(false);
 		projictile->SetActorTickEnabled(false);
 		_FireballPool.Enqueue(projictile);
-
-		UE_LOG(LogTemp, Error, TEXT("RecycleFireBall"));
 	}
 }
