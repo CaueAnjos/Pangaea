@@ -80,9 +80,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Hit(int damage);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void DieProcess(AActor* DieActor, ULifeComponent* DieActorLifeComp);
-	void DieProcess_Implementation(AActor* DieActor, ULifeComponent* DieActorLifeComp);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE ULifeComponent* GetLifeComponent() const

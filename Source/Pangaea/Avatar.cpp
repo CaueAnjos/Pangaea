@@ -24,9 +24,9 @@ void AAvatar::BeginPlay()
 	bIsAttacking = false;
 	bEndReHitCoolDown = true;
 
-	_AnimInstance = Cast<UAvatarAnimInstance>(GetMesh()->GetAnimInstance());
+	//_LifeComp->OnDie.AddDynamic(this, &AAvatar::DieProcess);
 
-	_LifeComp->OnDie.AddDynamic(this, &AAvatar::DieProcess);
+	_AnimInstance = Cast<UAvatarAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 void AAvatar::OnFinishAttackCoolDown()
@@ -94,14 +94,9 @@ void AAvatar::Hit(int damage)
 
 		_LifeComp->Damage(damage);
 
-		GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);
-	}
-}
+		GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);	
 
-void AAvatar::DieProcess_Implementation(AActor* DieActor, ULifeComponent* DieActorLifeComp)
-{
-	if(IsValid(DieActor))
-	{
-		DieActor->Destroy();
+		if(_LifeComp->IsDead())
+			DieProcess(this, _LifeComp);
 	}
 }
