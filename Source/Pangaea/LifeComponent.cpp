@@ -65,6 +65,6 @@ void ULifeComponent::Rep_CurrentHealth()
 	OnHealthChange.Broadcast(this);
 
 	if(IsDead())
-		OnDie.Broadcast();
+		OnDie.Broadcast(GetOwner(), this);
 }
 

@@ -6,7 +6,7 @@
 
 class ULifeComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDie, AActor*, DieActor, ULifeComponent*, DieActorLifeComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChange, ULifeComponent*, LifeComp);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

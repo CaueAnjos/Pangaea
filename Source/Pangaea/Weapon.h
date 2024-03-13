@@ -63,7 +63,7 @@ public:
 
 private:
 	UFUNCTION()
-	void OnHolderDie();
+	void OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp);
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void DropWeapon_MultCast();

@@ -112,9 +112,9 @@ void ADefenseTower::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AAct
 		_Target = nullptr;
 }
 
-void ADefenseTower::DestroyProcess()
+void ADefenseTower::DestroyProcess(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 {
-	Destroy();
+	DieActor->Destroy();
 }
 
 void ADefenseTower::OnFinishReHitCoolDown()

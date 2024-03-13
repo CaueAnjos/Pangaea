@@ -86,7 +86,7 @@ void AWeapon::PickUpWeapon(APlayerAvatar* playerAvatar)
 	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName(TEXT("hand_rSocket")));
 }
 
-void AWeapon::OnHolderDie()
+void AWeapon::OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 {
 	if(HasAuthority())
 		DropWeapon();

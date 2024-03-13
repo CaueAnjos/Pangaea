@@ -21,7 +21,6 @@ void UAvatarAnimInstance::OnStateAnimationEnds()
 				else
 				{
 					AvatarState = EAvatarState::Die;
-					avatar->DieProcess();
 				}
 			}
 		}

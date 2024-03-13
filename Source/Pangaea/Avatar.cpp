@@ -98,7 +98,10 @@ void AAvatar::Hit(int damage)
 	}
 }
 
-void AAvatar::DieProcess_Implementation()
+void AAvatar::DieProcess_Implementation(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 {
-	Destroy();
+	if(IsValid(DieActor))
+	{
+		DieActor->Destroy();
+	}
 }

@@ -74,7 +74,7 @@ public:
 
 protected:
 	UFUNCTION()
-	void DestroyProcess();
+	void DestroyProcess(AActor* DieActor, ULifeComponent* DieActorLifeComp);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower Component", meta = (AllowPrivateAccess = "true"))
