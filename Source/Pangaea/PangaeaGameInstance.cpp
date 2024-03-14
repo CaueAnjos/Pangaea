@@ -10,7 +10,7 @@ void UPangaeaGameInstance::StartListenServer()
 void UPangaeaGameInstance::JoinAsClient(FString IPAdress)
 {
 	UWorld* world = GEngine->GetCurrentPlayWorld();
-	UGameplayStatics::OpenLevel(world, TEXT("TopDownMap"), true, TEXT("?join"));
+	UGameplayStatics::OpenLevel(world, *IPAdress, true, TEXT("?join"));
 }
 
 void UPangaeaGameInstance::LeaveGame()
