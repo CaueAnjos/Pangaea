@@ -4,6 +4,7 @@
 #include "PangaeaPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Projictile.h"
+#include "PangaeaGameState.h"
 
 APangaeaGameMode::APangaeaGameMode()
 {
@@ -23,6 +24,8 @@ APangaeaGameMode::APangaeaGameMode()
 	{
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
+
+	GameStateClass = APangaeaGameState::StaticClass();
 }
 
 AProjictile* APangaeaGameMode::SpawnOrGetFireball(TSubclassOf<AProjictile> projictileClass)
