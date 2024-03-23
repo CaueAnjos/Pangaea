@@ -4,7 +4,7 @@
 void UPangaeaGameInstance::StartListenServer()
 {
 	UWorld* world = GEngine->GetCurrentPlayWorld();
-	UGameplayStatics::OpenLevel(world, TEXT("TopDownMap"), true, TEXT("?listen"));
+	UGameplayStatics::OpenLevel(world, TEXT("FrozenCove"), true, TEXT("?listen"));
 }
 
 void UPangaeaGameInstance::JoinAsClient(FString IPAdress)

@@ -94,9 +94,7 @@ void AWeapon::OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 
 void AWeapon::DropWeapon_MultCast_Implementation()
 {
-	FVector newPosition = GetActorLocation();
-	newPosition.Z = 90.f;
-	SetActorLocationAndRotation(newPosition, FQuat::Identity);
+	SetActorRotation(FQuat::Identity);
 }
 
 void AWeapon::OnPickUpSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
