@@ -11,3 +11,9 @@ void APangaeaGameState::OnTimerChange()
 {
 	OnTimerChangeDelegate.Broadcast(Timer);
 }
+
+void APangaeaGameState::OnGameWin()
+{
+	bGameWin = true;
+	OnGameWinOrLoseDelegate.Broadcast(bGameWin);
+}

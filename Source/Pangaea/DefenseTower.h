@@ -17,6 +17,9 @@ class PANGAEA_API ADefenseTower : public AActor
 public:	
 	ADefenseTower();
 
+	UPROPERTY(EditInstanceOnly, Category = "Tower Params")
+	bool bIsBaseTower = false;
+
 	UPROPERTY(EditAnywhere, Category = "Tower Params")
 	ULifeComponent* LifeComp;
 	

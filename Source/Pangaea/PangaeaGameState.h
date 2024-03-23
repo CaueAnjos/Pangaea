@@ -5,6 +5,7 @@
 #include "PangaeaGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerChangeDelegate, float, Timer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameWinOrLose, bool, Win);
 
 UCLASS()
 class PANGAEA_API APangaeaGameState : public AGameStateBase
@@ -21,4 +22,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnTimerChange();
+
+	UFUNCTION(BlueprintCallable)
+	void OnGameWin();
+
+	UPROPERTY(ReplicatedUsing = OnGameWin, BlueprintReadWrite)
+	bool bGameWin = false;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGameWinOrLose OnGameWinOrLoseDelegate;
 };

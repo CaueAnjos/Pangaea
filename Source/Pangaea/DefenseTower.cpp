@@ -4,6 +4,7 @@
 #include "Weapon.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PangaeaGameMode.h"
+#include "PangaeaGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "DefenseTower.h"
 #include "LifeComponent.h"
@@ -114,7 +115,12 @@ void ADefenseTower::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AAct
 
 void ADefenseTower::DestroyProcess(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 {
-	DieActor->Destroy();
+	if(bIsBaseTower)
+	{
+		auto gameState = Cast<APangaeaGameState>(GetWorld()->GetGameState());
+		gameState->OnGameWin();
+	}
+	else Destroy();
 }
 
 void ADefenseTower::OnFinishReHitCoolDown()
