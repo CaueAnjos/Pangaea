@@ -20,6 +20,7 @@ void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ULifeComponent, _CurrentHealth);
 	DOREPLIFETIME(ULifeComponent, _MaxHealth);
+	DOREPLIFETIME(ULifeComponent, bIsInvensible);
 }
 
 void ULifeComponent::SetMaxHealth(float value)
@@ -35,7 +36,7 @@ void ULifeComponent::SetMaxHealth(float value)
 
 void ULifeComponent::Damage(float damageAmount)
 {
-	if(!IsDead()  && damageAmount >= 0)
+	if(!IsDead() && !bIsInvensible && damageAmount > 0)
 	{
 		float newHealth = GetCurrentHealth() - damageAmount;
 		SetCurrentHealth(newHealth);
@@ -44,7 +45,7 @@ void ULifeComponent::Damage(float damageAmount)
 
 void ULifeComponent::Cure(float cureAmount)
 {
-	if(cureAmount >= 0)
+	if(cureAmount > 0)
 	{
 		float newHealth = GetCurrentHealth() + cureAmount;
 		SetCurrentHealth(newHealth);

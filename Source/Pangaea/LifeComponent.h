@@ -25,6 +25,9 @@ protected:
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UPROPERTY(Replicated, EditAnywhere, Category = "LifeStatus")
+	bool bIsInvensible = false;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnDie OnDie;
 

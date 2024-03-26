@@ -70,21 +70,25 @@ void AWeapon::DropWeapon()
 
 void AWeapon::PickUpWeapon(APlayerAvatar* playerAvatar)
 {
+	if(!playerAvatar) return;
+
 	SetHolder(playerAvatar);
 	_PickUpSphere->SetActive(false);
 
 	TArray<AActor*> attachedActors;
 	playerAvatar->GetAttachedActors(attachedActors);
-
-	for(int i = 0; i < attachedActors.Num(); i++)
+	for(AActor* actor : attachedActors)
 	{
-		AWeapon* weapon = Cast<AWeapon>(attachedActors[i]);
-		if(weapon)
+		if(AWeapon* weapon = Cast<AWeapon>(actor))
+		{
 			weapon->DropWeapon();
+		}
 	}
 
-	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName(TEXT("hand_rSocket")));
+	static const FName HandRSocket(TEXT("hand_rSocket"));
+	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, HandRSocket);
 }
+
 
 void AWeapon::OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 {
