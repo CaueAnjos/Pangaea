@@ -72,7 +72,7 @@ bool AAvatar::IsKilled() const
 
 bool AAvatar::CanAttack() const
 {
-	return bIsAttacking == false;
+	return bIsAttacking == false && !_LifeComp->IsDead();
 }
 
 bool AAvatar::IsAttacking() const
@@ -94,7 +94,8 @@ void AAvatar::Hit(int damage)
 
 		_LifeComp->Damage(damage);
 
-		GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);	
+		if(!_LifeComp->bIsInvensible && !_LifeComp->IsDead())
+			GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);
 
 		if(_LifeComp->IsDead())
 			DieProcess(this, _LifeComp);
