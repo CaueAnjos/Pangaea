@@ -10,6 +10,8 @@ class UAvatarAnimInstance;
 class AWeapon;
 class ULifeComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttack);
+
 UCLASS()
 class PANGAEA_API AAvatar : public ACharacter
 {
@@ -29,11 +31,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Avatar Params|Attack")
 	float ReHitInterval = 1.f;
 
-	UPROPERTY(EditAnywhere, Category = "Avatar Params|Attack")
-	UAnimMontage* AttackMontage;
-
-	UPROPERTY(EditAnywhere, Category = "Avatar Params|Attack")
-	UAnimMontage* HitMontage;
+	UPROPERTY(BlueprintAssignable)
+	FOnAttack OnAttack;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Avatar Params|Attack")
 	UBoxComponent* HitBox;
@@ -49,7 +48,6 @@ protected:
 
 private:
 	uint8 bIsAttacking : 1;
-	uint8 bEndReHitCoolDown : 1;
 
 	FTimerHandle AttackCoolDownTimer;
 	FTimerHandle ReHitCoolDownTimer;

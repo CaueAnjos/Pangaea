@@ -22,7 +22,6 @@ void AAvatar::BeginPlay()
 {
 	Super::BeginPlay();
 	bIsAttacking = false;
-	bEndReHitCoolDown = true;
 
 	//_LifeComp->OnDie.AddDynamic(this, &AAvatar::DieProcess);
 
@@ -39,7 +38,7 @@ void AAvatar::OnFinishAttackCoolDown()
 void AAvatar::OnFinishReHitCoolDown()
 {
 	GetWorldTimerManager().ClearTimer(ReHitCoolDownTimer);
-	bEndReHitCoolDown = true;
+	_LifeComp->bIsInvensible = false;
 }
 
 void AAvatar::Attack_BroadCast_Implementation()
@@ -48,10 +47,7 @@ void AAvatar::Attack_BroadCast_Implementation()
 	bIsAttacking = true;
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Attack"));
 
-	if(AttackMontage != nullptr)
-	{
-		GetMesh()->GetAnimInstance()->Montage_Play(AttackMontage);
-	}
+	OnAttack.Broadcast();
 }
 
 float AAvatar::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -87,15 +83,12 @@ void AAvatar::Attack_Implementation()
 
 void AAvatar::Hit(int damage)
 {
-	if(damage > 0 && bEndReHitCoolDown)
+	if(damage > 0 && !_LifeComp->bIsInvensible)
 	{
-		bEndReHitCoolDown = false;
-		GetWorldTimerManager().SetTimer(ReHitCoolDownTimer, this, &AAvatar::OnFinishReHitCoolDown, ReHitInterval, false, ReHitInterval);
-
 		_LifeComp->Damage(damage);
 
-		if(!_LifeComp->bIsInvensible && !_LifeComp->IsDead())
-			GetMesh()->GetAnimInstance()->Montage_Play(HitMontage);
+		_LifeComp->bIsInvensible = true;
+		GetWorldTimerManager().SetTimer(ReHitCoolDownTimer, this, &AAvatar::OnFinishReHitCoolDown, ReHitInterval, false, ReHitInterval);
 
 		if(_LifeComp->IsDead())
 			DieProcess(this, _LifeComp);
