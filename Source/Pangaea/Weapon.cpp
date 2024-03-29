@@ -46,11 +46,11 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 
 void AWeapon::SetHolder(AAvatar* newHolder)
 {
+	if(IsValid(_Holder))
+		_Holder->GetLifeComponent()->OnDie.RemoveDynamic(this, &AWeapon::OnHolderDie);
+
 	if(IsValid(newHolder))
 	{
-		if(IsValid(_Holder))
-			_Holder->GetLifeComponent()->OnDie.RemoveDynamic(this, &AWeapon::OnHolderDie);
-
 		_Holder = newHolder;
 		_Holder->GetLifeComponent()->OnDie.AddDynamic(this, &AWeapon::OnHolderDie);
 
@@ -62,31 +62,12 @@ void AWeapon::SetHolder(AAvatar* newHolder)
 
 void AWeapon::DropWeapon()
 {
-	SetHolder(nullptr);
-	_PickUpSphere->SetActive(true);
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	DropWeapon_MultCast();
+	Server_DropWeapon();
 }
 
 void AWeapon::PickUpWeapon(APlayerAvatar* playerAvatar)
 {
-	if(!playerAvatar) return;
-
-	SetHolder(playerAvatar);
-	_PickUpSphere->SetActive(false);
-
-	TArray<AActor*> attachedActors;
-	playerAvatar->GetAttachedActors(attachedActors);
-	for(AActor* actor : attachedActors)
-	{
-		if(AWeapon* weapon = Cast<AWeapon>(actor))
-		{
-			weapon->DropWeapon();
-		}
-	}
-
-	static const FName HandRSocket(TEXT("hand_rSocket"));
-	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, HandRSocket);
+	Server_PickUp(playerAvatar);
 }
 
 
@@ -96,9 +77,35 @@ void AWeapon::OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp)
 		DropWeapon();
 }
 
-void AWeapon::DropWeapon_MultCast_Implementation()
+void AWeapon::Server_DropWeapon_Implementation()
 {
+	SetHolder(nullptr);
+	_PickUpSphere->SetActive(true);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	SetActorRotation(FQuat::Identity);
+}
+
+void AWeapon::Server_PickUp_Implementation(APlayerAvatar* playerAvatar)
+{
+	SetHolder(playerAvatar);
+	_PickUpSphere->SetActive(false);
+
+	TArray<AActor*> attachedActors;
+	playerAvatar->GetAttachedActors(attachedActors);
+	for(AActor* actor : attachedActors)
+	{
+		AWeapon* weapon = Cast<AWeapon>(actor);
+		if(weapon)
+			weapon->DropWeapon();
+	}
+
+	static const FName HandRSocket(TEXT("hand_rSocket"));
+	AttachToComponent(GetHolder()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, HandRSocket);
+}
+
+bool AWeapon::Server_PickUp_Validate(APlayerAvatar* playerAvatar)
+{
+	return IsValid(playerAvatar);
 }
 
 void AWeapon::OnPickUpSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

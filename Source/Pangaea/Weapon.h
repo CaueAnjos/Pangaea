@@ -65,9 +65,14 @@ private:
 	UFUNCTION()
 	void OnHolderDie(AActor* DieActor, ULifeComponent* DieActorLifeComp);
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void DropWeapon_MultCast();
-	void DropWeapon_MultCast_Implementation();
+	UFUNCTION(Server, Unreliable)
+	void Server_DropWeapon();
+	void Server_DropWeapon_Implementation();
+
+	UFUNCTION(Server, Unreliable, WithValidation)
+	void Server_PickUp(APlayerAvatar* playerAvatar);
+	void Server_PickUp_Implementation(APlayerAvatar* playerAvatar);
+	bool Server_PickUp_Validate(APlayerAvatar* playerAvatar);
 
 	UFUNCTION()
 	void OnPickUpSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
