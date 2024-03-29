@@ -8,6 +8,7 @@ class ULifeComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDie, AActor*, DieActor, ULifeComponent*, DieActorLifeComp);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChange, ULifeComponent*, LifeComp);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnTakeDamage, AActor*, DamageActor, ULifeComponent*, LifeComp, float, DamageAmount);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PANGAEA_API ULifeComponent : public UActorComponent
@@ -34,8 +35,11 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChange OnHealthChange;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnTakeDamage OnTakeDamage;
+
 	UFUNCTION(BlueprintCallable)
-	void SetMaxHealth(float value);
+	void SetMaxHealth(float NewMax);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetMaxHealth() const
@@ -56,7 +60,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	void SetCurrentHealth(float newHealth);
+	void SetCurrentHealth(float NewHealth);
 
 	UFUNCTION(BlueprintPure)
 	FORCEINLINE float GetCurrentHealth() const
@@ -70,5 +74,21 @@ private:
 
 	UFUNCTION()
 	void Rep_CurrentHealth();
+
+	UFUNCTION(Server, Unreliable)
+	void Server_Damage(float DamageAmount);
+	void Server_Damage_Implementation(float DamageAmount);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Net_Damage(float DamageAmount);
+	void Net_Damage_Implementation(float DamageAmount);
+
+	UFUNCTION(Server, Unreliable)
+	void Server_SetCurrentHealth(float NewHealth);
+	void Server_SetCurrentHealth_Implementation(float NewHealth);
+
+	UFUNCTION(Server, Unreliable)
+	void Server_SetMaxHealth(float NewMax);
+	void Server_SetMaxHealth_Implementation(float NewMax);
 
 };
