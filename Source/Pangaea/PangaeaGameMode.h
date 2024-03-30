@@ -19,8 +19,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FireBallPool")
 	void RecycleFireBall(AProjictile* projictile);
 
-protected:
-	TQueue<AProjictile*, EQueueMode::Spsc> _FireballPool;
+private:
+	TQueue<AProjictile*> _FireballPool;
 };
 
 

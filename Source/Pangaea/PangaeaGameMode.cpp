@@ -28,24 +28,38 @@ APangaeaGameMode::APangaeaGameMode()
 	GameStateClass = APangaeaGameState::StaticClass();
 }
 
-AProjictile* APangaeaGameMode::SpawnOrGetFireball(TSubclassOf<AProjictile> projictileClass)
+AProjictile* APangaeaGameMode::SpawnOrGetFireball(TSubclassOf<AProjictile> projectileClass)
 {
-	AProjictile* projictile = nullptr;
-	if(_FireballPool.Dequeue(projictile))
-		projictile->Reset();
-	else
-		projictile = GetWorld()->SpawnActor<AProjictile>(projictileClass);
-
-	return projictile;
+    AProjictile* projectile = nullptr;
+    if(_FireballPool.Dequeue(projectile))
+    {
+        check(projectile);
+        projectile->SetActorHiddenInGame(false);
+    }
+    else
+    {
+        if(projectileClass)
+        {
+            projectile = GetWorld()->SpawnActor<AProjictile>(projectileClass);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Invalid projectile class!"));
+        }
+    }
+    return projectile;
 }
 
-void APangaeaGameMode::RecycleFireBall(AProjictile* projictile)
+void APangaeaGameMode::RecycleFireBall(AProjictile* projectile)
 {
-	if(projictile != nullptr)
-	{
-		projictile->SetActorHiddenInGame(true);
-		projictile->SetActorEnableCollision(false);
-		projictile->SetActorTickEnabled(false);
-		_FireballPool.Enqueue(projictile);
-	}
+    if(IsValid(projectile))
+    {
+        projectile->SetActorHiddenInGame(true);
+        _FireballPool.Enqueue(projectile);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Attempted to recycle a null projectile!"));
+    }
 }
+
