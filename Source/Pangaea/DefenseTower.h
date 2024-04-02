@@ -91,4 +91,6 @@ private:
 	FTimerHandle ReHitCoolDownTimer;
 
 	void OnFinishReHitCoolDown();
+
+	FTimerHandle FireTimer;
 };

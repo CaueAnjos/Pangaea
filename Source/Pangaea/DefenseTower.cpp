@@ -27,9 +27,9 @@ ADefenseTower::ADefenseTower()
 void ADefenseTower::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorTickInterval(0.5f);
-
 	bEndReHitCoolDown = true;
+
+	GetWorldTimerManager().SetTimer(FireTimer, this, &ADefenseTower::Fire, ReloadInterval, true);
 
 	LifeComp->OnDie.AddDynamic(this, &ADefenseTower::DestroyProcess);
 
@@ -43,8 +43,6 @@ void ADefenseTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(HasAuthority() && _Target)
-		Fire();
 }
 
 float ADefenseTower::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
