@@ -76,20 +76,23 @@ bool ADefenseTower::CanFire() const
 
 void ADefenseTower::Fire()
 {
-	if(!ProjictileClass) UE_LOG(LogTemp, Error, TEXT("No projictile class set!"));
-	if(HasAuthority())
+	checkf(ProjictileClass, TEXT("No projictile class set on %s"), *GetName())
+
+	if(HasAuthority() && _Target)
 	{
-		auto fireBall = _GameMode->SpawnOrGetFireball(ProjictileClass);
+		AProjictile* fireBall = _GameMode->SpawnOrGetFireball(ProjictileClass);
+		if(fireBall)
+		{
+			FVector startLocation = GetActorLocation();
+			startLocation.Z += 100.f;
+			FVector targetLocation = _Target->GetActorLocation();
+			targetLocation.Z = startLocation.Z;
 
-		FVector startLocation = GetActorLocation();
-		startLocation.Z += 100.f;
-		FVector targetLocation = _Target->GetActorLocation();
-		targetLocation.Z = startLocation.Z;
+			FRotator rotation = UKismetMathLibrary::FindLookAtRotation(startLocation, targetLocation);
 
-		FRotator rotation = UKismetMathLibrary::FindLookAtRotation(startLocation, targetLocation);
-
-		fireBall->SetActorLocation(startLocation);
-		fireBall->SetActorRotation(rotation);
+			fireBall->SetActorLocation(startLocation);
+			fireBall->SetActorRotation(rotation);
+		}
 	}
 }
 
