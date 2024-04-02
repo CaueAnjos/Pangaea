@@ -31,21 +31,18 @@ APangaeaGameMode::APangaeaGameMode()
 AProjictile* APangaeaGameMode::SpawnOrGetFireball(TSubclassOf<AProjictile> projectileClass)
 {
     AProjictile* projectile = nullptr;
-    if(_FireballPool.Dequeue(projectile))
+    _FireballPool.Dequeue(projectile);
+    if(IsValid(projectile))
     {
-        check(projectile);
         projectile->SetActorHiddenInGame(false);
+    }
+    else if(projectileClass)
+    {
+       projectile = GetWorld()->SpawnActor<AProjictile>(projectileClass);
     }
     else
     {
-        if(projectileClass)
-        {
-            projectile = GetWorld()->SpawnActor<AProjictile>(projectileClass);
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Invalid projectile class!"));
-        }
+        UE_LOG(LogTemp, Error, TEXT("Invalid projectile class!"));
     }
     return projectile;
 }
