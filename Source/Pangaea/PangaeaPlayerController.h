@@ -8,8 +8,15 @@
 class UNiagaraSystem;
 class UInputMappingContext;
 class UInputAction;
+struct FInputActionInstance;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
+UENUM()
+enum class WalkMode : uint8
+{
+	Auto, Manualy
+};
 
 UCLASS()
 class APangaeaPlayerController : public APlayerController
@@ -39,6 +46,9 @@ public:
 	UInputAction* SetDestinationTouchAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
 
 	UFUNCTION(Server, Unreliable)
@@ -55,18 +65,12 @@ protected:
 	virtual void BeginPlay();
 
 	/** Input handlers for SetDestination action. */
-	void OnInputStarted();
 	void OnSetDestinationTriggered();
-	void OnSetDestinationReleased();
-	void OnTouchTriggered();
-	void OnTouchReleased();
-	void OnAttackPressed();
+	void Move(const FInputActionInstance& Instance);
+	void OnAttackTriggered();
 
 private:
-	FVector CachedDestination;
-
-	bool bIsTouch; // Is it a touch device
-	float FollowTime; // For how long it has been pressed
+	WalkMode Walk;
 };
 
 

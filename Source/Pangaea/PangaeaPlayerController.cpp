@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "PlayerAvatar.h"
+#include "InputAction.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -16,8 +17,6 @@ APangaeaPlayerController::APangaeaPlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
-	CachedDestination = FVector::ZeroVector;
-	FollowTime = 0.f;
 }
 
 void APangaeaPlayerController::BeginPlay()
@@ -43,17 +42,11 @@ void APangaeaPlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &APangaeaPlayerController::OnInputStarted);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &APangaeaPlayerController::OnSetDestinationTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &APangaeaPlayerController::OnSetDestinationReleased);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &APangaeaPlayerController::OnSetDestinationReleased);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &APangaeaPlayerController::OnAttackPressed);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APangaeaPlayerController::Move);
 
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Started, this, &APangaeaPlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &APangaeaPlayerController::OnTouchTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &APangaeaPlayerController::OnTouchReleased);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &APangaeaPlayerController::OnTouchReleased);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &APangaeaPlayerController::OnAttackTriggered);
 	}
 	else
 	{
@@ -61,92 +54,46 @@ void APangaeaPlayerController::SetupInputComponent()
 	}
 }
 
-void APangaeaPlayerController::OnAttackPressed()
+void APangaeaPlayerController::OnAttackTriggered()
 {
 	FHitResult Hit;
 	bool bHitSuccessful = false;
-	if(bIsTouch)
-	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-
-	if(bHitSuccessful)
-	{
-		CachedDestination = Hit.Location;
-	}
+	bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 
 	APawn* ControlledPawn = GetPawn();
 	if(ControlledPawn != nullptr)
 	{
-		FVector point = CachedDestination;
+		FVector point = Hit.Location;
 		point.Z = ControlledPawn->GetActorLocation().Z;
 
 		PawnLookTo(point);
-	}
 
-	auto playerAvatar = Cast<APlayerAvatar>(GetPawn());
-	if(playerAvatar && playerAvatar->CanAttack())
-	{
-		playerAvatar->Attack();
+		auto playerAvatar = Cast<APlayerAvatar>(GetPawn());
+		if(playerAvatar && playerAvatar->CanAttack())
+		{
+			playerAvatar->Attack();
+		}
 	}
-}
-
-void APangaeaPlayerController::OnInputStarted()
-{
-	StopMovement();
 }
 
 void APangaeaPlayerController::OnSetDestinationTriggered()
-{
-	FollowTime += GetWorld()->GetDeltaSeconds();
-	
+{	
 	FHitResult Hit;
 	bool bHitSuccessful = false;
-	if (bIsTouch)
-	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
+	bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 
-	if (bHitSuccessful)
+	if(bHitSuccessful)
 	{
-		CachedDestination = Hit.Location;
-	}
-	
-	APawn* ControlledPawn = GetPawn();
-	if (ControlledPawn != nullptr)
-	{
-		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, Hit.Location);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FXCursor, Hit.Location);
 	}
 }
 
-void APangaeaPlayerController::OnSetDestinationReleased()
+void APangaeaPlayerController::Move(const FInputActionInstance& Instance)
 {
-	if (FollowTime <= ShortPressThreshold)
+	FVector2D Direction = Instance.GetValue().Get<FVector2D>();
+	if(Direction != FVector2D::Zero())
 	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
+		GetPawn()->AddMovementInput(FVector(Direction, 0), 1.0, false);
 	}
-
-	FollowTime = 0.f;
-}
-
-void APangaeaPlayerController::OnTouchTriggered()
-{
-	bIsTouch = true;
-	OnSetDestinationTriggered();
-}
-
-void APangaeaPlayerController::OnTouchReleased()
-{
-	bIsTouch = false;
-	OnSetDestinationReleased();
 }
