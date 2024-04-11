@@ -13,7 +13,7 @@ struct FInputActionInstance;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UENUM()
-enum class WalkMode : uint8
+enum class EWalkMode : uint8
 {
 	Auto, Manualy
 };
@@ -69,8 +69,17 @@ protected:
 	void Move(const FInputActionInstance& Instance);
 	void OnAttackTriggered();
 
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	FORCEINLINE EWalkMode GetWalkMode()
+	{
+		return _Walk;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void SetWalkMode(EWalkMode WalkMode);
+
 private:
-	WalkMode Walk;
+	EWalkMode _Walk;
 };
 
 
