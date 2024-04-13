@@ -81,7 +81,7 @@ void APangaeaPlayerController::SetWalkMode(EWalkMode WalkMode)
 	if(_Walk != WalkMode)
 	{
 		_Walk = WalkMode;
-		StopMovement();
+		Server_StopMovement();
 	}
 }
 
@@ -94,7 +94,7 @@ void APangaeaPlayerController::OnSetDestinationTriggered()
 	if(bHitSuccessful)
 	{
 		SetWalkMode(EWalkMode::Auto);
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, Hit.Location);
+		Server_MoveTo(Hit.Location);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FXCursor, Hit.Location);
 	}
 }
@@ -107,4 +107,17 @@ void APangaeaPlayerController::Move(const FInputActionInstance& Instance)
 		SetWalkMode(EWalkMode::Manualy);
 		GetPawn()->AddMovementInput(FVector(Direction, 0), 1.0, false);
 	}
+}
+
+void APangaeaPlayerController::Server_MoveTo_Implementation(FVector FinalLocation)
+{
+	if(FinalLocation != FVector::Zero())
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, FinalLocation);
+	}
+}
+
+void APangaeaPlayerController::Server_StopMovement_Implementation()
+{
+	StopMovement();
 }

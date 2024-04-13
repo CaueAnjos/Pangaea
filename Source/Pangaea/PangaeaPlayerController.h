@@ -80,6 +80,14 @@ protected:
 
 private:
 	EWalkMode _Walk;
+
+	UFUNCTION(Server, Unreliable)
+	void Server_MoveTo(FVector FinalLocation);
+	void Server_MoveTo_Implementation(FVector FinalLocation);
+
+	UFUNCTION(Server, Unreliable)
+	void Server_StopMovement();
+	void Server_StopMovement_Implementation();
 };
 
 
