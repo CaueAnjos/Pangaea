@@ -52,8 +52,29 @@ public:
 	UInputAction* AttackAction;
 
 	UFUNCTION(Server, Unreliable)
-	void PawnLookTo(FVector point);
-	void PawnLookTo_Implementation(FVector point);
+	void BodyLookTo(FVector point);
+	void BodyLookTo_Implementation(FVector point);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetBodyRotation(FQuat Rotation);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void GoToDestination(FVector Destination);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void MoveBody(FVector2D Direction);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BodyAttack();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void StopBodyMovement();
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void StopControllerMovement(AController* Controller)
+	{
+		Server_StopMovement(Controller);
+	}
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
@@ -82,12 +103,8 @@ private:
 	EWalkMode _Walk;
 
 	UFUNCTION(Server, Unreliable)
-	void Server_MoveTo(FVector FinalLocation);
-	void Server_MoveTo_Implementation(FVector FinalLocation);
-
-	UFUNCTION(Server, Unreliable)
-	void Server_StopMovement();
-	void Server_StopMovement_Implementation();
+	void Server_StopMovement(AController* Controller);
+	void Server_StopMovement_Implementation(AController* Controller);
 };
 
 

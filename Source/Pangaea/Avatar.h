@@ -71,6 +71,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Pangaea|PlayerAvatar")
 	bool IsAttacking() const;
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void K2_Attack()
+	{
+		if(CanAttack())
+		{
+			Attack();
+		}
+	}
+
 	UFUNCTION(Server, Reliable)
 	void Attack();
 	void Attack_Implementation();

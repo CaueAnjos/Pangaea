@@ -25,15 +25,20 @@ void APangaeaPlayerController::BeginPlay()
 
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
+		if(DefaultMappingContext == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("DefaultMappingContext was null on %s"), *GetName());
+		}
+
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
 }
 
-void APangaeaPlayerController::PawnLookTo_Implementation(FVector point)
+void APangaeaPlayerController::BodyLookTo_Implementation(FVector point)
 {
 	FVector LookDirection = (point - GetPawn()->GetActorLocation()).GetSafeNormal();
 	FQuat rotation = LookDirection.Rotation().Quaternion();
-	GetPawn()->SetActorRotation(rotation);
+	SetBodyRotation(rotation);
 }
 
 void APangaeaPlayerController::SetupInputComponent()
@@ -66,13 +71,8 @@ void APangaeaPlayerController::OnAttackTriggered()
 		FVector point = Hit.Location;
 		point.Z = ControlledPawn->GetActorLocation().Z;
 
-		PawnLookTo(point);
-
-		auto playerAvatar = Cast<APlayerAvatar>(GetPawn());
-		if(playerAvatar && playerAvatar->CanAttack())
-		{
-			playerAvatar->Attack();
-		}
+		BodyLookTo(point);
+		BodyAttack();
 	}
 }
 
@@ -81,7 +81,7 @@ void APangaeaPlayerController::SetWalkMode(EWalkMode WalkMode)
 	if(_Walk != WalkMode)
 	{
 		_Walk = WalkMode;
-		Server_StopMovement();
+		StopBodyMovement();
 	}
 }
 
@@ -94,7 +94,7 @@ void APangaeaPlayerController::OnSetDestinationTriggered()
 	if(bHitSuccessful)
 	{
 		SetWalkMode(EWalkMode::Auto);
-		Server_MoveTo(Hit.Location);
+		GoToDestination(Hit.Location);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FXCursor, Hit.Location);
 	}
 }
@@ -105,19 +105,11 @@ void APangaeaPlayerController::Move(const FInputActionInstance& Instance)
 	if(Direction != FVector2D::Zero())
 	{
 		SetWalkMode(EWalkMode::Manualy);
-		GetPawn()->AddMovementInput(FVector(Direction, 0), 1.0, false);
+		MoveBody(Direction);
 	}
 }
 
-void APangaeaPlayerController::Server_MoveTo_Implementation(FVector FinalLocation)
+void APangaeaPlayerController::Server_StopMovement_Implementation(AController* Controller)
 {
-	if(FinalLocation != FVector::Zero())
-	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, FinalLocation);
-	}
-}
-
-void APangaeaPlayerController::Server_StopMovement_Implementation()
-{
-	StopMovement();
+	Controller->StopMovement();
 }
