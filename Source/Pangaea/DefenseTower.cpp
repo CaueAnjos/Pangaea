@@ -78,10 +78,10 @@ void ADefenseTower::Fire()
 {
 	checkf(ProjictileClass, TEXT("No projictile class set on %s"), *GetName())
 
-	if(HasAuthority() && _Target)
+	if(HasAuthority() && IsValid(_Target))
 	{
 		AProjictile* fireBall = _GameMode->SpawnOrGetFireball(ProjictileClass);
-		if(fireBall)
+		if(IsValid(fireBall))
 		{
 			FVector startLocation = GetActorLocation();
 			startLocation.Z += 100.f;
