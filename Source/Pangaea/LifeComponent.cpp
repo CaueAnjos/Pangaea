@@ -25,7 +25,12 @@ void ULifeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void ULifeComponent::SetMaxHealth(float NewMax)
 {
-	Server_SetMaxHealth(NewMax);
+	if(NewMax > 0)
+	{
+		_MaxHealth = NewMax;
+		if(GetCurrentHealth() > _MaxHealth)
+			UpdateCurrentHealth(_MaxHealth);
+	}
 }
 
 void ULifeComponent::Damage(float damageAmount)
@@ -33,7 +38,7 @@ void ULifeComponent::Damage(float damageAmount)
 	if(!IsDead() && !bIsInvensible && damageAmount > 0)
 	{
 		float newHealth = GetCurrentHealth() - damageAmount;
-		SetCurrentHealth(newHealth);
+		UpdateCurrentHealth(newHealth);
 		Server_Damage(damageAmount);
 	}
 }
@@ -43,13 +48,14 @@ void ULifeComponent::Cure(float cureAmount)
 	if(cureAmount > 0)
 	{
 		float newHealth = GetCurrentHealth() + cureAmount;
-		SetCurrentHealth(newHealth);
+		UpdateCurrentHealth(newHealth);
 	}
 }
 
 void ULifeComponent::SetCurrentHealth(float NewHealth)
 {
-	Server_SetCurrentHealth(NewHealth);
+	_CurrentHealth = FMath::Clamp(NewHealth, 0.f, _MaxHealth);
+	Rep_CurrentHealth();
 }
 
 void ULifeComponent::Rep_CurrentHealth()
@@ -70,19 +76,19 @@ void ULifeComponent::Net_Damage_Implementation(float DamageAmount)
 	OnTakeDamage.Broadcast(GetOwner(), this, DamageAmount);
 }
 
-void ULifeComponent::Server_SetCurrentHealth_Implementation(float NewHealth)
+void ULifeComponent::UpdateCurrentHealth_Implementation(float NewHealth)
 {
-	_CurrentHealth = FMath::Clamp(NewHealth, 0.f, _MaxHealth);
-	Rep_CurrentHealth();
+	if(GetOwner()->GetLocalRole() == ROLE_Authority)
+	{
+		SetCurrentHealth(NewHealth);
+	}
 }
 
-void ULifeComponent::Server_SetMaxHealth_Implementation(float NewMax)
+void ULifeComponent::UpdateMaxHealth_Implementation(float NewMax)
 {
-	if(NewMax > 0)
+	if(GetOwner()->GetLocalRole() == ROLE_Authority)
 	{
-		_MaxHealth = NewMax;
-		if(GetCurrentHealth() > _MaxHealth)
-			SetCurrentHealth(_MaxHealth);
+		SetMaxHealth(NewMax);
 	}
 }
 

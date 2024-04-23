@@ -68,6 +68,14 @@ public:
 		return _CurrentHealth;
 	}
 
+	UFUNCTION(Server, Unreliable , BlueprintCallable)
+	void UpdateCurrentHealth(float NewHealth);
+	void UpdateCurrentHealth_Implementation(float NewHealth);
+
+	UFUNCTION(Server, Unreliable, BlueprintCallable)
+	void UpdateMaxHealth(float NewMax);
+	void UpdateMaxHealth_Implementation(float NewMax);
+
 private:	
 	UPROPERTY(Replicated, ReplicatedUsing=Rep_CurrentHealth)
 	float _CurrentHealth = 0.f;
@@ -82,13 +90,5 @@ private:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Net_Damage(float DamageAmount);
 	void Net_Damage_Implementation(float DamageAmount);
-
-	UFUNCTION(Server, Unreliable)
-	void Server_SetCurrentHealth(float NewHealth);
-	void Server_SetCurrentHealth_Implementation(float NewHealth);
-
-	UFUNCTION(Server, Unreliable)
-	void Server_SetMaxHealth(float NewMax);
-	void Server_SetMaxHealth_Implementation(float NewMax);
 
 };
