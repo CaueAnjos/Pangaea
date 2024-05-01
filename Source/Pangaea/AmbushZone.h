@@ -15,6 +15,8 @@ class PANGAEA_API AAmbushZone : public AActor
 public:	
 	AAmbushZone();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION(BlueprintPure, Category = "Ambush")
 	FORCEINLINE TArray<TScriptInterface<IZoneEnemy>> GetEnemysInZone()
 	{
@@ -29,29 +31,40 @@ public:
 
 	FORCEINLINE bool IsAmbushTriggered()
 	{
-		return TriggeredAmbush;
+		return HasTriggeredAmbush;
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "Ambush")
 	void RegisterEnemysInZone();
 
-	UFUNCTION(BlueprintCallable, Category = "Ambush")
-	void TriggerAmbush(AActor* OverlappedActor, AActor* OtherActor);
-
-	UFUNCTION(BlueprintCallable, Category = "Ambush")
-	void EndAmbush(AActor* OverlappedActor, AActor* OtherActor);
-
 protected:
 	virtual void BeginPlay() override;
-
-	bool TriggeredAmbush;
 
 	UPROPERTY(EditInstanceOnly, Category = "Ambush")
 	USphereComponent* AmbushCircle;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Net_CallEnemysStartAmbush();
+	void Net_CallEnemysStartAmbush_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Net_CallEnemysStopAmbush();
+	void Net_CallEnemysStopAmbush_Implementation();
+
 private:
+	UPROPERTY(Replicated)
 	TArray<TScriptInterface<IZoneEnemy>> EnemysInZone;
 
+	UPROPERTY(Replicated)
 	TArray<APlayerController*> PlayersInZone;
+
+	UFUNCTION()
+	void TriggerAmbush(AActor* OverlappedActor, AActor* OtherActor);
+
+	UFUNCTION()
+	void EndAmbush(AActor* OverlappedActor, AActor* OtherActor);
+
+	UPROPERTY(Replicated)
+	bool HasTriggeredAmbush;
 
 };

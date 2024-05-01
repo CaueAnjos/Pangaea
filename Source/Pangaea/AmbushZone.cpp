@@ -1,14 +1,23 @@
 #include "AmbushZone.h"
 #include "Components/SphereComponent.h"
 #include "ZoneEnemy.h"
+#include "Net/UnrealNetwork.h"
 
 AAmbushZone::AAmbushZone()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	TriggeredAmbush = false;
+	HasTriggeredAmbush = false;
 
 	AmbushCircle = CreateDefaultSubobject<USphereComponent>(TEXT("Area"));
 	AmbushCircle->InitSphereRadius(200.f);
+}
+
+void AAmbushZone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AAmbushZone, EnemysInZone);
+	DOREPLIFETIME(AAmbushZone, PlayersInZone);
+	DOREPLIFETIME(AAmbushZone, HasTriggeredAmbush);
 }
 
 void AAmbushZone::RegisterEnemysInZone()
@@ -38,28 +47,50 @@ void AAmbushZone::RegisterEnemysInZone()
 
 void AAmbushZone::TriggerAmbush(AActor* OverlappedActor, AActor* OtherActor)
 {
-	TriggeredAmbush = true;
+	if(!IsAmbushTriggered())
+	{
+		HasTriggeredAmbush = true;
+		APawn* PlayerPawn = Cast<APawn>(OtherActor);
+		if(PlayerPawn)
+		{
+			APlayerController* Player = Cast<APlayerController>(PlayerPawn->GetController());
+			if(Player)
+			{
+				PlayersInZone.Add(Player);
+				Net_CallEnemysStartAmbush();
+			}
+		}
+	}
+}
 
+void AAmbushZone::Net_CallEnemysStartAmbush_Implementation()
+{
 	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
 	{
 		IZoneEnemy::Execute_OnStartAmbush(Enemy.GetObject(), this);
 	}
 }
 
+void AAmbushZone::Net_CallEnemysStopAmbush_Implementation()
+{
+	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
+	{
+		IZoneEnemy::Execute_OnStopAmbush(Enemy.GetObject(), this);
+	}
+}
+
 void AAmbushZone::EndAmbush(AActor* OverlappedActor, AActor* OtherActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("EndAmbush"));
-
-	TriggeredAmbush = false;
-	if(GetEnemysInZone().Num() == 0)
+	if(IsAmbushTriggered())
 	{
-		Destroy();
-	}
-	else
-	{
-		for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
+		HasTriggeredAmbush = false;
+		if(GetEnemysInZone().Num() == 0)
 		{
-			IZoneEnemy::Execute_OnStopAmbush(Enemy.GetObject(), this);
+			Destroy();
+		}
+		else
+		{
+			Net_CallEnemysStopAmbush();
 		}
 	}
 }
@@ -68,9 +99,12 @@ void AAmbushZone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OnActorBeginOverlap.AddDynamic(this, &AAmbushZone::TriggerAmbush);
-	OnActorEndOverlap.AddDynamic(this, &AAmbushZone::EndAmbush);
+	if(GetLocalRole() == ROLE_Authority)
+	{
+		OnActorBeginOverlap.AddDynamic(this, &AAmbushZone::TriggerAmbush);
+		OnActorEndOverlap.AddDynamic(this, &AAmbushZone::EndAmbush);
 
-	RegisterEnemysInZone();
+		RegisterEnemysInZone();
+	}
 }
 
