@@ -24,7 +24,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintPure, Category = "Ambush")
-	FORCEINLINE TArray<APlayerController*> GetPlayersInZone()
+	FORCEINLINE TArray<APawn*> GetPlayersInZone()
 	{
 		return PlayersInZone;
 	}
@@ -43,6 +43,9 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Ambush")
 	USphereComponent* AmbushCircle;
 
+	UPROPERTY(EditAnywhere, Category = "Ambush")
+	FName TriggerTag;
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Net_CallEnemysStartAmbush();
 	void Net_CallEnemysStartAmbush_Implementation();
@@ -56,13 +59,13 @@ private:
 	TArray<TScriptInterface<IZoneEnemy>> EnemysInZone;
 
 	UPROPERTY(Replicated)
-	TArray<APlayerController*> PlayersInZone;
+	TArray<APawn*> PlayersInZone;
 
 	UFUNCTION()
-	void TriggerAmbush(AActor* OverlappedActor, AActor* OtherActor);
+	void TriggerAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void EndAmbush(AActor* OverlappedActor, AActor* OtherActor);
+	void EndAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY(Replicated)
 	bool HasTriggeredAmbush;

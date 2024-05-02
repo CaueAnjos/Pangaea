@@ -10,6 +10,7 @@ AAmbushZone::AAmbushZone()
 
 	AmbushCircle = CreateDefaultSubobject<USphereComponent>(TEXT("Area"));
 	AmbushCircle->InitSphereRadius(200.f);
+	AmbushCircle->SetCollisionProfileName(TEXT("Trigger"));
 }
 
 void AAmbushZone::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,21 +46,14 @@ void AAmbushZone::RegisterEnemysInZone()
 	}
 }
 
-void AAmbushZone::TriggerAmbush(AActor* OverlappedActor, AActor* OtherActor)
+void AAmbushZone::TriggerAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(!IsAmbushTriggered())
+	HasTriggeredAmbush = true;
+	APawn* PlayerPawn = Cast<APawn>(OtherActor);
+	if(PlayerPawn && PlayerPawn->ActorHasTag(TriggerTag))
 	{
-		HasTriggeredAmbush = true;
-		APawn* PlayerPawn = Cast<APawn>(OtherActor);
-		if(PlayerPawn)
-		{
-			APlayerController* Player = Cast<APlayerController>(PlayerPawn->GetController());
-			if(Player)
-			{
-				PlayersInZone.Add(Player);
-				Net_CallEnemysStartAmbush();
-			}
-		}
+		PlayersInZone.Add(PlayerPawn);
+		Net_CallEnemysStartAmbush();
 	}
 }
 
@@ -79,19 +73,16 @@ void AAmbushZone::Net_CallEnemysStopAmbush_Implementation()
 	}
 }
 
-void AAmbushZone::EndAmbush(AActor* OverlappedActor, AActor* OtherActor)
+void AAmbushZone::EndAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if(IsAmbushTriggered())
+	HasTriggeredAmbush = false;
+	if(GetEnemysInZone().Num() == 0)
 	{
-		HasTriggeredAmbush = false;
-		if(GetEnemysInZone().Num() == 0)
-		{
-			Destroy();
-		}
-		else
-		{
-			Net_CallEnemysStopAmbush();
-		}
+		Destroy();
+	}
+	else
+	{
+		Net_CallEnemysStopAmbush();
 	}
 }
 
@@ -101,8 +92,8 @@ void AAmbushZone::BeginPlay()
 
 	if(GetLocalRole() == ROLE_Authority)
 	{
-		OnActorBeginOverlap.AddDynamic(this, &AAmbushZone::TriggerAmbush);
-		OnActorEndOverlap.AddDynamic(this, &AAmbushZone::EndAmbush);
+		AmbushCircle->OnComponentBeginOverlap.AddDynamic(this, &AAmbushZone::TriggerAmbush);
+		AmbushCircle->OnComponentEndOverlap.AddDynamic(this, &AAmbushZone::EndAmbush);
 
 		RegisterEnemysInZone();
 	}
