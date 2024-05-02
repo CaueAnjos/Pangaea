@@ -29,6 +29,7 @@ public:
 		return TriggerActorsInZone;
 	}
 
+	UFUNCTION(BlueprintPure, Category = "Ambush")
 	FORCEINLINE bool IsAmbushTriggered()
 	{
 		return HasTriggeredAmbush;
