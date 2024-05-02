@@ -48,14 +48,10 @@ void AAmbushZone::RegisterEnemysInZone()
 	}
 }
 
-void AAmbushZone::TryTriggerAmbush(AActor* TriggerActor)
+void AAmbushZone::TriggerAmbush()
 {
-	if(TriggerActor->ActorHasTag(TriggerTag) && !TriggerActorsInZone.Contains(TriggerActor))
-	{
-		HasTriggeredAmbush = true;
-		TriggerActorsInZone.Add(TriggerActor);
-		MulticastCallEnemysStartAmbush();
-	}
+	HasTriggeredAmbush = true;
+	MulticastCallEnemysStartAmbush();
 }
 
 void AAmbushZone::EndAmbush()
@@ -69,9 +65,14 @@ void AAmbushZone::EndAmbush()
 
 void AAmbushZone::OnOverlapAmbushZone(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(!IsAmbushTriggered())
+	if(OtherActor->ActorHasTag(TriggerTag) && !TriggerActorsInZone.Contains(OtherActor))
 	{
-		TryTriggerAmbush(OtherActor);		
+		TriggerActorsInZone.Add(OtherActor);
+
+		if(!IsAmbushTriggered())
+		{
+			TriggerAmbush();
+		}
 	}
 }
 
@@ -96,11 +97,11 @@ void AAmbushZone::OnEndOverlapAmbushZone(UPrimitiveComponent* OverlappedComponen
 	if(TriggerActorsInZone.Contains(OtherActor))
 	{
 		TriggerActorsInZone.Remove(OtherActor);
-	}
 
-	if(TriggerActorsInZone.Num() == 0)
-	{
-		EndAmbush();
+		if(TriggerActorsInZone.Num() == 0 && IsAmbushTriggered())
+		{
+			EndAmbush();
+		}
 	}
 }
 

@@ -39,7 +39,7 @@ public:
 	void RegisterEnemysInZone();
 
 	UFUNCTION(BlueprintCallable, Category = "Ambush")
-	void TryTriggerAmbush(AActor* TriggerActor);
+	void TriggerAmbush();
 
 	UFUNCTION(BlueprintCallable, Category = "Ambush")
 	void EndAmbush();
