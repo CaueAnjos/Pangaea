@@ -24,9 +24,9 @@ public:
 	}
 
 	UFUNCTION(BlueprintPure, Category = "Ambush")
-	FORCEINLINE TArray<APawn*> GetPlayersInZone()
+	FORCEINLINE TArray<AActor*> GetTriggerActorsInZone()
 	{
-		return PlayersInZone;
+		return TriggerActorsInZone;
 	}
 
 	FORCEINLINE bool IsAmbushTriggered()
@@ -37,6 +37,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ambush")
 	void RegisterEnemysInZone();
 
+	UFUNCTION(BlueprintCallable, Category = "Ambush")
+	void TryTriggerAmbush(AActor* TriggerActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Ambush")
+	void EndAmbush();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -46,26 +52,26 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ambush")
 	FName TriggerTag;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Net_CallEnemysStartAmbush();
-	void Net_CallEnemysStartAmbush_Implementation();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastCallEnemysStartAmbush();
+	void MulticastCallEnemysStartAmbush_Implementation();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Net_CallEnemysStopAmbush();
-	void Net_CallEnemysStopAmbush_Implementation();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastCallEnemysStopAmbush();
+	void MulticastCallEnemysStopAmbush_Implementation();
 
 private:
 	UPROPERTY(Replicated)
 	TArray<TScriptInterface<IZoneEnemy>> EnemysInZone;
 
 	UPROPERTY(Replicated)
-	TArray<APawn*> PlayersInZone;
+	TArray<AActor*> TriggerActorsInZone;
 
 	UFUNCTION()
-	void TriggerAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnOverlapAmbushZone(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void EndAmbush(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnEndOverlapAmbushZone(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY(Replicated)
 	bool HasTriggeredAmbush;
