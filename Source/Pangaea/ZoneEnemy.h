@@ -17,6 +17,9 @@ class PANGAEA_API IZoneEnemy
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Ambush")
+	void ZoneDetectedEnemy(AAmbushZone* Ambush);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Ambush")
 	void OnStartAmbush(AAmbushZone* Ambush);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Ambush")

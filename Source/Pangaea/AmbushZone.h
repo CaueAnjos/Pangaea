@@ -60,6 +60,10 @@ protected:
 	FName TriggerTag;
 
 	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastCallZoneDetectedEnemy();
+	void MulticastCallZoneDetectedEnemy_Implementation();
+
+	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastCallEnemysStartAmbush();
 	void MulticastCallEnemysStartAmbush_Implementation();
 

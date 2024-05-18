@@ -75,6 +75,14 @@ void AAmbushZone::OnOverlapAmbushZone(UPrimitiveComponent* OverlappedComponent, 
 	}
 }
 
+void AAmbushZone::MulticastCallZoneDetectedEnemy_Implementation()
+{
+	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
+	{
+		IZoneEnemy::Execute_ZoneDetectedEnemy(Enemy.GetObject(), this);
+	}
+}
+
 void AAmbushZone::MulticastCallEnemysStartAmbush_Implementation()
 {
 	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
@@ -114,6 +122,7 @@ void AAmbushZone::BeginPlay()
 		AmbushCircle->OnComponentEndOverlap.AddDynamic(this, &AAmbushZone::OnEndOverlapAmbushZone);
 
 		RegisterEnemysInZone();
+		MulticastCallZoneDetectedEnemy();
 	}
 }
 
