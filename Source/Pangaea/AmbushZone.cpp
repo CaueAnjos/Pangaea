@@ -79,7 +79,14 @@ void AAmbushZone::MulticastCallZoneDetectedEnemy_Implementation()
 {
 	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
 	{
-		IZoneEnemy::Execute_ZoneDetectedEnemy(Enemy.GetObject(), this);
+		if(IsValid(Enemy.GetObject()))
+		{
+			IZoneEnemy::Execute_ZoneDetectedEnemy(Enemy.GetObject(), this);
+		}
+		else
+		{
+			EnemysInZone.Remove(Enemy);
+		}
 	}
 }
 
@@ -87,7 +94,14 @@ void AAmbushZone::MulticastCallEnemysStartAmbush_Implementation()
 {
 	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
 	{
-		IZoneEnemy::Execute_OnStartAmbush(Enemy.GetObject(), this);
+		if(IsValid(Enemy.GetObject()))
+		{
+			IZoneEnemy::Execute_OnStartAmbush(Enemy.GetObject(), this);
+		}
+		else
+		{
+			EnemysInZone.Remove(Enemy);
+		}
 	}
 }
 
@@ -95,7 +109,14 @@ void AAmbushZone::MulticastCallEnemysStopAmbush_Implementation()
 {
 	for(TScriptInterface<IZoneEnemy>& Enemy : GetEnemysInZone())
 	{
-		IZoneEnemy::Execute_OnStopAmbush(Enemy.GetObject(), this);
+		if(IsValid(Enemy.GetObject()))
+		{
+			IZoneEnemy::Execute_OnStopAmbush(Enemy.GetObject(), this);
+		}
+		else
+		{
+			EnemysInZone.Remove(Enemy);
+		}
 	}
 }
 
