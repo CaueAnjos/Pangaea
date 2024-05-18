@@ -1,5 +1,4 @@
 #include "AmbushZone.h"
-#include "Components/SphereComponent.h"
 #include "ZoneEnemy.h"
 #include "Net/UnrealNetwork.h"
 

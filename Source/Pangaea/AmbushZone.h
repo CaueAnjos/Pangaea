@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "AmbushZone.generated.h"
 
 class IZoneEnemy;
-class USphereComponent;
 
 UCLASS()
 class PANGAEA_API AAmbushZone : public AActor
@@ -43,6 +43,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ambush")
 	void EndAmbush();
+
+	UFUNCTION(BlueprintPure, Category = "Ambush")
+	float GetAmbushRadius() const
+	{
+		return AmbushCircle->GetScaledSphereRadius();
+	}
 
 protected:
 	virtual void BeginPlay() override;
